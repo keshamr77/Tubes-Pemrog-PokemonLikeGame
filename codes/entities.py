@@ -23,9 +23,9 @@ class Player(pygame.sprite.Sprite):
             input_vector.x += 1
         self.direction = input_vector.normalize() if input_vector else input_vector 
 
-    def move(self):
-        self.rect.center += self.direction * 250
+    def move(self, dt):
+        self.rect.center += self.direction * 250 * dt
 		
-    def update(self):
+    def update(self, dt):
         self.input()
-        self.move()
+        self.move(dt)
