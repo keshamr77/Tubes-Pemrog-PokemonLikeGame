@@ -2,9 +2,11 @@ from settings import *
 from pytmx.util_pygame import load_pygame
 from os.path import join, dirname, abspath
 
-from sprites import Sprite
+from sprites import Sprite, AnimatedSprite
 from entities import Player
 from groups import AllSprites
+
+from support import *
 
 class Game:
     def __init__(self) :
@@ -22,12 +24,23 @@ class Game:
     def import_assets(self) :
         base_path = dirname(dirname(abspath(__file__)))
         map_path = join(base_path, "data", "maps", "world.tmx")
-        self.tmx_maps = {'world': load_pygame(map_path)}
- 
+        hospital_path =  join(base_path, "data", "maps", "hospital.tmx")
+        water_path = join(base_path, "graphics", "tilesets", "water")
+        self.tmx_maps = {
+            'world': load_pygame(map_path), 
+            'hospital' : load_pygame(hospital_path)
+                       }
+        
+        self.overworld_frames = {
+            'water' : import_folder(water_path)
+        }
+
     def setup(self, tmx_map, player_start_pos):
         # Terrain
-        for x,y, surf in tmx_map.get_layer_by_name('Terrain').tiles() :
-            Sprite((x * TILE_SIZE, y * TILE_SIZE), surf, self.all_sprites)
+        for layer in ['Terrain', 'Terrain Top'] :
+            for x,y, surf in tmx_map.get_layer_by_name('Terrain').tiles() :
+                Sprite((x * TILE_SIZE, y * TILE_SIZE), surf, self.all_sprites)
+        
         
         # Entities
         for obj in tmx_map.get_layer_by_name('Entities') :
@@ -38,6 +51,12 @@ class Game:
         for obj in tmx_map.get_layer_by_name('Objects') :
             Sprite((obj.x, obj.y), obj.image, self.all_sprites)
         
+        # Water 
+        for obj in tmx_map.get_layer_by_name('Water') :
+            for x in range(int(obj.x), int(obj.x + obj.width), TILE_SIZE) : 
+                for y in range(int(obj.y), int(obj.y + obj.height), TILE_SIZE) :
+                    AnimatedSprite((x,y), self.overworld_frames['water'], self.all_sprites)
+                
     def run(self) :
         while True :
             dt = self.clock.tick() / 1000
