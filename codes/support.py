@@ -79,3 +79,28 @@ def coast_importer(cols, rows, *path) :
 		for key, pos in sides.items() :
 			new_dict[terrain][key] = [frame_dict[(pos[0] + index * 3, pos[1] + row)] for row in range(0,rows, 3)]
 	return new_dict
+
+def tmx_importer(*path):
+	tmx_dict = {}
+	for folder_path, sub_folders, file_names in walk(join(*path)):
+		for file in file_names:
+			tmx_dict[file.split('.')[0]] = load_pygame(join(folder_path, file))
+	return tmx_dict
+
+# Game Functions 
+def draw_bar(surface, rect, value, max_value, color, bg_color, radius = 1):
+	ratio = rect.width / max_value
+	bg_rect = rect.copy()
+	progress = max(0, min(rect.width,value * ratio))
+	progress_rect = pygame.FRect(rect.topleft, (progress,rect.height))
+	pygame.draw.rect(surface, bg_color, bg_rect, 0, radius)
+	pygame.draw.rect(surface, color, progress_rect, 0, radius)
+
+def check_connections(radius, entity, target, tolerance = 30):
+	relation = vector(target.rect.center) - vector(entity.rect.center)
+	if relation.length() < radius:
+		if entity.facing_direction == 'left' and relation.x < 0 and abs(relation.y) < tolerance or\
+		   entity.facing_direction == 'right' and relation.x > 0 and abs(relation.y) < tolerance or\
+		   entity.facing_direction == 'up' and relation.y < 0 and abs(relation.x) < tolerance or\
+		   entity.facing_direction == 'down' and relation.y > 0 and abs(relation.x) < tolerance:
+			return True
