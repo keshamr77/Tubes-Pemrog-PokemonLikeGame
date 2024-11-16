@@ -26,13 +26,15 @@ class Game:
         map_path = join(base_path, "data", "maps", "world.tmx")
         hospital_path =  join(base_path, "data", "maps", "hospital.tmx")
         water_path = join(base_path, "graphics", "tilesets", "water")
+        coast_path = join(base_path, "graphics", "tilesets", "coast")
         self.tmx_maps = {
             'world': load_pygame(map_path), 
             'hospital' : load_pygame(hospital_path)
                        }
         
         self.overworld_frames = {
-            'water' : import_folder(water_path)
+            'water' : import_folder(water_path),
+            'coast' : coast_importer(24,12, coast_path)
         }
 
     def setup(self, tmx_map, player_start_pos):
