@@ -2,7 +2,7 @@ from settings import *
 from pytmx.util_pygame import load_pygame
 from os.path import join, dirname, abspath
 
-from sprites import Sprite, AnimatedSprite
+from sprites import Sprite, AnimatedSprite, MonsterPatchSprite, BorderSprite, CollidableSprite
 from entities import Player, Character
 from groups import AllSprites
 
@@ -17,6 +17,7 @@ class Game:
 
         # Groups
         self.all_sprites = AllSprites()
+        self.collision_sprites = pygame.sprite.Group()
 
         self.import_assets()
         self.setup(self.tmx_maps['world'], 'house')
@@ -42,34 +43,8 @@ class Game:
     def setup(self, tmx_map, player_start_pos):
         # Terrain
         for layer in ['Terrain', 'Terrain Top'] :
-            for x,y, surf in tmx_map.get_layer_by_name('Terrain').tiles() :
+            for x, y, surf in tmx_map.get_layer_by_name('Terrain').tiles():
                 Sprite((x * TILE_SIZE, y * TILE_SIZE), surf, self.all_sprites, WORLD_LAYERS['bg'])
-        
-        
-        # Entities
-        for obj in tmx_map.get_layer_by_name('Entities') :
-            if obj.name == 'Player' :
-                if obj.properties['pos'] == player_start_pos :
-                    self.player = Player(
-                        pos = (obj.x, obj.y), 
-                        frames = self.overworld_frames['characters']['player'],
-                        groups = self.all_sprites,
-                        facing_direction = obj.properties['direction'])
-            else :
-                Character(
-                    pos = (obj.x, obj.y), 
-                    frames = self.overworld_frames['characters'][obj.properties['graphic']],
-                    groups = self.all_sprites,
-                    facing_direction =  obj.properties['direction']
-                )
-        
-        # Objects
-        for obj in tmx_map.get_layer_by_name('Objects') :
-            Sprite((obj.x, obj.y), obj.image, self.all_sprites)
-        
-        # Grass patches
-        for obj in tmx_map.get_layer_by_name('Monsters') :
-            Sprite((obj.x, obj.y), obj.image, self.all_sprites)
 
         # Water 
         for obj in tmx_map.get_layer_by_name('Water') :
@@ -82,6 +57,40 @@ class Game:
             terrain = obj.properties['terrain']
             side = obj.properties['side'] 
             AnimatedSprite((obj.x, obj.y), self.overworld_frames['coast'][terrain][side], self.all_sprites, WORLD_LAYERS['bg'])    
+        
+        # Objects
+        for obj in tmx_map.get_layer_by_name('Objects'):
+            if obj.name == 'top':
+                Sprite((obj.x, obj.y), obj.image, self.all_sprites, WORLD_LAYERS['top'])
+            else:
+                CollidableSprite((obj.x, obj.y), obj.image, (self.all_sprites, self.collision_sprites))
+
+        # collision objects 
+        for obj in tmx_map.get_layer_by_name('Collisions'):
+            BorderSprite((obj.x, obj.y), pygame.Surface((obj.width, obj.height)), self.collision_sprites)
+
+        # Grass patches
+        for obj in tmx_map.get_layer_by_name('Monsters') :
+            MonsterPatchSprite((obj.x, obj.y), obj.image, self.all_sprites, obj.properties['biome'])
+
+         # Entities
+        for obj in tmx_map.get_layer_by_name('Entities') :
+            if obj.name == 'Player' :
+                if obj.properties['pos'] == player_start_pos :
+                    self.player = Player(
+                        pos = (obj.x, obj.y), 
+                        frames = self.overworld_frames['characters']['player'],
+                        groups = self.all_sprites,
+                        facing_direction = obj.properties['direction'],
+                        collision_sprites = self.collision_sprites)
+            else :
+                Character(
+                    pos = (obj.x, obj.y), 
+                    frames = self.overworld_frames['characters'][obj.properties['graphic']],
+                    groups = (self.all_sprites, self.collision_sprites),
+                    facing_direction =  obj.properties['direction']
+                )
+    
     def run(self) :
         while True :
             dt = self.clock.tick() / 1000
@@ -95,7 +104,6 @@ class Game:
             self.all_sprites.update(dt)
             self.display_surface.fill('black')
             self.all_sprites.draw(self.player.rect.center)
-            print(self.clock.get_fps())
 
             pygame.display.update()
 
