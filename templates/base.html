@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Pokemon Airstrike{% endblock %}</title>
+    <link rel="stylesheet" href="/static/css/styles.css"> <!-- Link ke file CSS -->
+</head>
+<body>
+    <!-- Latar belakang menggunakan GIF -->
+    <div class="background-container">
+        <img src="/static/assets/images/background.gif" alt="Background" class="background">
+    </div>
+
+    <!-- Konten dinamis akan ditambahkan di sini -->
+    <div class="content">
+        {% block content %}
+        {% endblock %}
+    </div>
+    
+    <script src="/static/js/game.js"></script> <!-- Tambahkan jika ada logic di halaman -->
+    {% block scripts %}
+    {% endblock %}
+</body>
+</html>
