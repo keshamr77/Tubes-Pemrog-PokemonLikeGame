@@ -1,0 +1,1 @@
+# Simpan fungsi-fungsi penting mekanik game disini
